@@ -1,0 +1,28 @@
+-- Status Page for arhan.dev
+-- Built with Quill x Cloudflare Workers
+
+worker on fetch with request:
+  sites are [
+    { name: "arhan.dev", url: "https://arhan.dev" },
+    { name: "quill.tradebuddy.dev", url: "https://quill.tradebuddy.dev" },
+    { name: "rewovenapp.com", url: "https://rewovenapp.com" },
+    { name: "mytradebuddy.com", url: "https://mytradebuddy.com" },
+    { name: "tradebuddy.dev", url: "https://tradebuddy.dev" },
+    { name: "deepika.fit", url: "https://deepika.fit" }
+  ]
+
+  results are await Promise.all(sites.map(with site: checkSite(site)))
+
+  totalUp is results.filter(with r: r.up).length
+  totalSites is results.length
+  allUp is totalUp is totalSites
+
+  bannerClass is "banner-up"
+  bannerText is "All systems operational"
+  if allUp is false:
+    bannerClass is "banner-down"
+    bannerText is totalUp + "/" + totalSites + " systems operational"
+
+  rows is results.map(with r: buildRow(r)).join("")
+
+  respond html page(bannerClass, bannerText, rows)

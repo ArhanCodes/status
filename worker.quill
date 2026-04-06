@@ -1,0 +1,117 @@
+-- Status Page for arhan.dev
+-- Built with Quill x Cloudflare Workers
+
+worker on fetch with request:
+  sites are [
+    { name: "arhan.dev", url: "https://arhan.dev" },
+    { name: "quill.tradebuddy.dev", url: "https://quill.tradebuddy.dev" },
+    { name: "status.arhan.dev", url: "https://status.arhan.dev" },
+    { name: "rewovenapp.com", url: "https://rewovenapp.com" },
+    { name: "mytradebuddy.com", url: "https://mytradebuddy.com" },
+    { name: "tradebuddy.dev", url: "https://tradebuddy.dev" },
+    { name: "deepika.fit", url: "https://deepika.fit" }
+  ]
+
+  results are []
+
+  for each site in sites:
+    statusCode is 0
+    responseTime is 0
+    isUp is false
+
+    try:
+      startTime is Date.now()
+      res is await fetch(site.url, { method: "HEAD", redirect: "follow", signal: AbortSignal.timeout(5000) })
+      responseTime is Date.now() - startTime
+      statusCode is res.status
+      isUp is statusCode >= 200 and statusCode < 400
+    if it fails:
+      isUp is false
+
+    results.push({ name: site.name, url: site.url, status: statusCode, time: responseTime, up: isUp })
+
+  totalUp is results.filter(with r: r.up).length
+  totalSites is results.length
+
+  html is buildPage(results, totalUp, totalSites)
+  respond html html
+
+
+to buildPage results totalUp totalSites:
+  rows is ""
+  for each r in results:
+    dot is ""
+    statusText is ""
+    timeText is ""
+    statusClass is ""
+
+    if r.up:
+      dot is "🟢"
+      statusText is "{r.status}"
+      timeText is "{r.time}ms"
+      statusClass is "up"
+    otherwise:
+      dot is "🔴"
+      statusText is "Down"
+      timeText is "—"
+      statusClass is "down"
+
+    rows is rows + "<tr class=\"{statusClass}\"><td class=\"site-cell\">{dot} <a href=\"{r.url}\" target=\"_blank\">{r.name}</a></td><td>{statusText}</td><td>{timeText}</td></tr>"
+
+  allUp is totalUp is totalSites
+  bannerClass is ""
+  bannerText is ""
+
+  if allUp:
+    bannerClass is "banner-up"
+    bannerText is "All systems operational"
+  otherwise:
+    bannerClass is "banner-down"
+    bannerText is "{totalUp}/{totalSites} systems operational"
+
+  give back "<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+  <meta charset=\"UTF-8\">
+  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+  <title>Status — arhan.dev</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+    .container { max-width: 720px; margin: 0 auto; padding: 40px 20px; }
+    h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #888; margin-bottom: 32px; font-size: 14px; }
+    .banner { padding: 16px 20px; border-radius: 10px; font-weight: 600; font-size: 15px; margin-bottom: 32px; }
+    .banner-up { background: rgba(30, 185, 105, 0.12); color: #1EB969; border: 1px solid rgba(30, 185, 105, 0.25); }
+    .banner-down { background: rgba(255, 75, 75, 0.12); color: #FF4B4B; border: 1px solid rgba(255, 75, 75, 0.25); }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #666; border-bottom: 1px solid #1a1a1a; }
+    td { padding: 14px 16px; border-bottom: 1px solid #1a1a1a; font-size: 14px; }
+    .site-cell { font-weight: 500; }
+    .site-cell a { color: #e0e0e0; text-decoration: none; }
+    .site-cell a:hover { color: #1EB969; }
+    tr.up td:nth-child(2) { color: #1EB969; }
+    tr.up td:nth-child(3) { color: #888; }
+    tr.down td:nth-child(2) { color: #FF4B4B; }
+    tr.down td:nth-child(3) { color: #555; }
+    .footer { margin-top: 40px; text-align: center; color: #444; font-size: 13px; }
+    .footer a { color: #1EB969; text-decoration: none; }
+    .badge { display: inline-block; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class=\"container\">
+    <h1>Status</h1>
+    <p class=\"subtitle\">Real-time monitoring for arhan.dev services</p>
+    <div class=\"banner {bannerClass}\">{bannerText}</div>
+    <table>
+      <thead><tr><th>Service</th><th>Status</th><th>Response</th></tr></thead>
+      <tbody>{rows}</tbody>
+    </table>
+    <div class=\"footer\">
+      <p>Powered by <a href=\"https://quill.tradebuddy.dev\">Quill</a> x Cloudflare Workers</p>
+      <p class=\"badge\">Checks run on every page load from the nearest edge node</p>
+    </div>
+  </div>
+</body>
+</html>"
