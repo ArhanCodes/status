@@ -4,9 +4,16 @@
 async function checkSite(site) {
   try {
     const start = Date.now();
-    const res = await fetch(site.url, { method: "HEAD", redirect: "follow", signal: AbortSignal.timeout(5000) });
+    // Try GET if HEAD fails (some sites block HEAD requests)
+    let res;
+    try {
+      res = await fetch(site.url, { method: "HEAD", redirect: "follow", signal: AbortSignal.timeout(8000) });
+    } catch (e) {
+      res = await fetch(site.url, { method: "GET", redirect: "follow", signal: AbortSignal.timeout(8000) });
+    }
     const time = Date.now() - start;
-    const up = res.status >= 200 && res.status < 400;
+    // Consider any response (even 403/500) as "up" — the server responded
+    const up = res.status > 0;
     return { name: site.name, url: site.url, up, time, status: res.status };
   } catch (e) {
     return { name: site.name, url: site.url, up: false, time: 0, status: 0 };
