@@ -81,10 +81,15 @@ export default {
   async fetch(request) {
     const sites = [
       { name: "arhan.dev", url: "https://arhan.dev" },
+      { name: "streaks.arhan.dev", url: "https://streaks.arhan.dev" },
+      { name: "chord.arhan.dev", url: "https://chord.arhan.dev" },
+      { name: "jarvis.arhan.dev", url: "https://jarvis.arhan.dev" },
+      { name: "friday.arhan.dev", url: "https://friday.arhan.dev" },
+      { name: "beam.arhan.dev", url: "https://beam.arhan.dev" },
       { name: "quill.tradebuddy.dev", url: "https://quill.tradebuddy.dev" },
-      { name: "rewovenapp.com", url: "https://rewovenapp.com" },
-      { name: "mytradebuddy.com", url: "https://mytradebuddy.com" },
       { name: "tradebuddy.dev", url: "https://tradebuddy.dev" },
+      { name: "mytradebuddy.com", url: "https://mytradebuddy.com" },
+      { name: "rewovenapp.com", url: "https://rewovenapp.com" },
       { name: "deepika.fit", url: "https://deepika.fit" }
     ];
 
